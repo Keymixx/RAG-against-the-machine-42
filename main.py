@@ -1,22 +1,25 @@
-from chonkie import CodeChunker
+from src.chunkers import get_chunker
+from transformers import AutoTokenizer
+import pathlib
 
-chunker = CodeChunker(
-    language="python",      # Specify the programming language
-    tokenizer="character",  # Default tokenizer (or use "gpt2", etc.)
-    chunk_size=2048,        # Maximum tokens per chunk
-    include_nodes=False     # Optionally include AST nodes in output
-)
+max_token_size = 2000
+model = "Qwen/Qwen3-0.6B"
+tokenizer = AutoTokenizer.from_pretrained(model)
 
-code = """
-def hello_world():
-    print("Hello, Chonkie!")
+all_sources = []
+all_path = []
 
-class MyClass:
-    def __init__(self):
-        self.value = 42
-"""
-chunks = chunker.chunk(code)
+path = pathlib.Path("vllm-0.10.1")
+all_path.extend(list(path.rglob("*.md")))
+all_path.extend(list(path.rglob("*.py")))
+for path in all_path:
+    chunker = get_chunker(path, tokenizer, max_token_size)
+    all_sources.append(chunker.chunk(path))
 
-for chunk in chunks:
-    print(f"Chunk text: {chunk.text}")
-    print(f"Token count: {chunk.token_count}")
+for sources in all_sources:
+    for source in sources:
+        print(source.text)
+        print(f"start_index: {source.first_character_index}")
+        print(f"end_index: {source.last_character_index}")
+        print(f"path: {source.file_path}")
+        print("\n#######################\n\n\n\n\n")
