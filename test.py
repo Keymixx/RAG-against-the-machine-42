@@ -5,23 +5,18 @@ corpus = [
     "a cat is a feline and likes to purr",
     "a dog is the human's best friend and loves to play",
     "a bird is a beautiful animal that can fly",
+    "a fish is a creature that lives in water and swims",
 ]
 
-# Tokenize the corpus and index it
-corpus_tokens = bm25s.tokenize(corpus)
+corpus1 = "a frog is a poop and likes to swim"
+# Create the BM25 model and index the corpus
 retriever = bm25s.BM25(corpus=corpus)
-retriever.index(corpus_tokens)
+retriever.index(bm25s.tokenize(corpus))
 
-# You can now search the corpus with a query
+# Query the corpus and get top-k results
 query = "does the fish purr like a cat?"
-query_tokens = bm25s.tokenize(query)
-docs, scores = retriever.retrieve(query_tokens, k=2)
-print(f"Best result (score: {scores[0, 0]:.2f}): {docs[0, 0]}")
+results, scores = retriever.retrieve(bm25s.tokenize(query), k=2)
 
-# Happy with your index? Save it for later...
-retriever.save("bm25s_index_animals")
-
-# ...and load it when needed
-ret_loaded = bm25s.BM25.load("bm25s_index_animals", load_corpus=True)
-
-
+# Let's see what we got!
+doc, score = results[0, 0], scores[0, 0]
+print(f"Rank {1} (score: {score:.2f}): {doc}")
