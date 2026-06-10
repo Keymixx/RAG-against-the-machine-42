@@ -3,7 +3,7 @@ from transformers import AutoTokenizer
 from bm25s import BM25, tokenize
 import pathlib
 
-max_token_size = 2000
+max_token_size = 256
 model = "Qwen/Qwen3-0.6B"
 tokenizer = AutoTokenizer.from_pretrained(model)
 
@@ -27,10 +27,11 @@ for path in all_path:
 # print(corpus_text[0])
 # print(corpus_text[1])
 retriever = BM25(corpus=corpus_text)
-retriever.index(tokenize(corpus_text))
+retriever.index(tokenize(corpus_text, stopwords="english"))
+retriever.save("bm25s_index_vllm")
 
-query = "what is vllm?"
-results, scores = retriever.retrieve(tokenize(query), k=2)
+query = "what command can be used to evaluate the accuracy of a quantized model using lm_eval with vLLM?"
+results, scores = retriever.retrieve(tokenize(query, stopwords="english"), k=2)
 
 # Let's see what we got!
 doc, score = results[0, 0], scores[0, 0]
