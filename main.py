@@ -19,6 +19,7 @@ path = pathlib.Path("vllm-0.10.1")
 doc_path = pathlib.Path("vllm-0.10.1/docs")
 
 all_path.extend(list(doc_path.rglob("*.md")))
+all_path.extend(list(doc_path.rglob("vllm/*.py")))
 all_path.extend(list(path.glob("README.md")))
 # all_path.extend(list(path.rglob("*.py")))
 for path in all_path:
@@ -34,13 +35,13 @@ retriever = BM25()
 retriever.index(tokenize(corpus_text, stopwords="english"))
 retriever.save("bm25s_index_vllm")
 
-query = "what command can be used to evaluate the accuracy of a quantized model using lm_eval with vLLM?"
-results, scores = retriever.retrieve(tokenize(query, stopwords="english"), k=5)
+query = "What endpoint does vLLM use to expose production metrics?"
+results, scores = retriever.retrieve(tokenize(query, stopwords="english"), k=2)
 
 
 lm = dspy.LM(
     'ollama_chat/qwen3:0.6b',
-    api_base='http://localhost:11434',
+    api_base='http://localhost:11434', #CHANGE CA !!!!
     max_tokens=max_token_size,
     think=False
 )
@@ -52,7 +53,7 @@ sources: List[MinimalSource] = []
 
 for i in range(results.shape[1]):
     doc_index = results[0, i]
-    score     = scores[0, i]
+    score = scores[0, i]
     print("\n\n")
     print(f"Rank {i+1} (score: {score:.2f})")
     print(f"Source index : {doc_index}")
@@ -61,5 +62,5 @@ for i in range(results.shape[1]):
     print(f"Last index  : {corpus_source[doc_index].last_character_index}")
     sources.append(corpus_source[doc_index])
 
-response = module("what command can be used to evaluate the accuracy of a quantized model using lm_eval with vLLM?", sources)
-print(response)
+response = module(query, sources)
+print(response.answer)
