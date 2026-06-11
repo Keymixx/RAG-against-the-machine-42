@@ -1,1 +1,4 @@
 .env
+vllm-0.10.1
+__pycache__
+bm25s_index_vllm
