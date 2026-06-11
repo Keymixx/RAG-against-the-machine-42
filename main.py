@@ -1,7 +1,11 @@
-from src.chunkers import get_chunker
-from transformers import AutoTokenizer
 from bm25s import BM25, tokenize
+import dspy
 import pathlib
+from src.chunkers import get_chunker
+from src.answer import AnswerBot
+from src.models import MinimalSource
+from transformers import AutoTokenizer
+from typing import List
 
 max_token_size = 256
 model = "Qwen/Qwen3-0.6B"
@@ -26,16 +30,36 @@ for path in all_path:
 
 # print(corpus_text[0])
 # print(corpus_text[1])
-retriever = BM25(corpus=corpus_text)
+retriever = BM25()
 retriever.index(tokenize(corpus_text, stopwords="english"))
 retriever.save("bm25s_index_vllm")
 
 query = "what command can be used to evaluate the accuracy of a quantized model using lm_eval with vLLM?"
-results, scores = retriever.retrieve(tokenize(query, stopwords="english"), k=2)
+results, scores = retriever.retrieve(tokenize(query, stopwords="english"), k=5)
 
-# Let's see what we got!
-doc, score = results[0, 0], scores[0, 0]
-print(f"Rank {1} (score: {score:.2f}): {doc}")
 
-print(f"\n\nall_files_count = {len(all_path)}")
-print(f"len corpus_text = {len(corpus_text)}")
+lm = dspy.LM(
+    'ollama_chat/qwen3:0.6b',
+    api_base='http://localhost:11434',
+    max_tokens=max_token_size,
+    think=False
+)
+dspy.configure(lm=lm)
+
+
+module = AnswerBot(max_token_size)
+sources: List[MinimalSource] = []
+
+for i in range(results.shape[1]):
+    doc_index = results[0, i]
+    score     = scores[0, i]
+    print("\n\n")
+    print(f"Rank {i+1} (score: {score:.2f})")
+    print(f"Source index : {doc_index}")
+    print(f"Source file  : {corpus_source[doc_index].file_path}")
+    print(f"First index  : {corpus_source[doc_index].first_character_index}")
+    print(f"Last index  : {corpus_source[doc_index].last_character_index}")
+    sources.append(corpus_source[doc_index])
+
+response = module("what command can be used to evaluate the accuracy of a quantized model using lm_eval with vLLM?", sources)
+print(response)
