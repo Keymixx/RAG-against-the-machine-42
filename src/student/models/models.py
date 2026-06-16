@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Optional
 import uuid
 
 
@@ -8,6 +8,9 @@ class MinimalSource(BaseModel):
     text: str
     first_character_index: int
     last_character_index: int
+    rank: Optional[int] = None
+    score: Optional[str] = None
+    resume: Optional[str] = ""
 
 
 class UnansweredQuestion(BaseModel):

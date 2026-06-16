@@ -65,6 +65,14 @@
 # response = module(query, sources)
 # print(response.answer)
 
-from src.student import indexing
+# from src.student import indexing
 
-indexing(256)
+# indexing(256)
+import json
+
+with open("data/processed/chunks/chunks.json", "r") as f:
+    chunks = json.load(f)
+
+for c in chunks:
+    print(c)
+    print("\n\n\n\n\n\n\n\n\\n\n\n")

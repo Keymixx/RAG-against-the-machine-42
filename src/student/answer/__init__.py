@@ -1,3 +1,3 @@
-from .AnswerBot import AnswerBot
+from .answer_bot import AnswerBot
 
-__all__ = [AnswerBot]
+__all__ = ["answer_bot"]

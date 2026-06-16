@@ -1,13 +1,14 @@
-from .models import MinimalSource, MinimalAnswer, MinimalSearchResults, AnsweredQuestion, UnansweredQuestion, RagDataset, StudentSearchResults, StudentSearchResultsAndAnswer
+from .models import MinimalSource, MinimalAnswer, MinimalSearchResults
+from .models import AnsweredQuestion, UnansweredQuestion, RagDataset
+from .models import StudentSearchResults, StudentSearchResultsAndAnswer
 
 __all__ = [
-    MinimalSource,
-    MinimalSearchResults,
-    MinimalAnswer,
-    MinimalSearchResults,
-    AnsweredQuestion,
-    UnansweredQuestion,
-    RagDataset,
-    StudentSearchResults,
-    StudentSearchResultsAndAnswer
-    ]
+    "MinimalSource",
+    "MinimalAnswer",
+    "MinimalSearchResults",
+    "AnsweredQuestion",
+    "UnansweredQuestion",
+    "RagDataset",
+    "StudentSearchResults",
+    "StudentSearchResultsAndAnswer",
+]
