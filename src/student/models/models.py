@@ -3,19 +3,23 @@ from typing import List, Optional
 import uuid
 
 
+class Chunk(BaseModel):
+    file_path: str
+    first_character_index: int
+    last_character_index: int
+
+
 class MinimalSource(BaseModel):
     file_path: str
-    text: str
     first_character_index: int
     last_character_index: int
     rank: Optional[int] = None
     score: Optional[str] = None
-    resume: Optional[str] = ""
 
 
 class UnansweredQuestion(BaseModel):
     question_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    question: str
+    question_str: str
 
 
 class AnsweredQuestion(UnansweredQuestion):
@@ -29,7 +33,7 @@ class RagDataset(BaseModel):
 
 class MinimalSearchResults(BaseModel):
     question_id: str
-    question: str
+    question_str: str
     retrieved_sources: List[MinimalSource]
 
 

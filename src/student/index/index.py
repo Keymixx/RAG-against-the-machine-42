@@ -23,10 +23,9 @@ def indexing(max_token_size: int, model="Qwen/Qwen3-0.6B"):
 
     for path in all_path:
         chunker = get_chunker(path, tokenizer, max_token_size)
-        chunks = chunker.chunk(path)
-        for chunk in chunks:
-            corpus_text.append(chunk.text)
-            corpus_source.append(chunk)
+        chunks, chunks_text = chunker.chunk(path)
+        corpus_source.extend(chunks)
+        corpus_text.extend(chunks_text)
 
     retriever = BM25()
     retriever.index(tokenize(corpus_text, stopwords="english"))

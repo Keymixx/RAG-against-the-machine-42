@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from chonkie import RecursiveChunker, CodeChunker as CChunker
-from src.student import MinimalSource
+from src.student import Chunk
 from pathlib import PosixPath
-from typing import List
+from typing import List, Tuple
 
 
 class BaseChunker(ABC):
@@ -10,7 +10,7 @@ class BaseChunker(ABC):
         self.max_chunk_size = max_chunk_size
 
     @abstractmethod
-    def chunk(self, path_file: str) -> List[MinimalSource]:
+    def chunk(self, path_file: PosixPath) -> Tuple[List[Chunk], List[str]]:
         ...
 
 
@@ -20,8 +20,9 @@ class CodeChunker(BaseChunker):
         self.language = language
         self.tokenizer = tokenizer
 
-    def chunk(self, path_file: PosixPath) -> List[MinimalSource]:
-        sources: List[MinimalSource] = []
+    def chunk(self, path_file: PosixPath) -> Tuple[List[Chunk], List[str]]:
+        sources: List[Chunk] = []
+        sources_txt: List[str] = []
         
         chunker = CChunker(
             language=self.language,
@@ -32,43 +33,45 @@ class CodeChunker(BaseChunker):
         file = path_file.read_text()
         chunks = chunker.chunk(file)
         for chunk in chunks:
-            source = MinimalSource(
+            source = Chunk(
                 file_path=str(path_file),
                 first_character_index=chunk.start_index,
-                last_character_index=chunk.end_index,
-                text=chunk.text
+                last_character_index=chunk.end_index
             )
             sources.append(source)
+            sources_txt.append(chunk.text)
 
-        return sources
+        return sources, sources_txt
 
 
 class MarkdownChunker(BaseChunker):
     def __init__(self, max_chunk_size: int, tokenizer):
         super().__init__(max_chunk_size, tokenizer)
         self.tokenizer = tokenizer
-    
-    def chunk(self, path_file: PosixPath) -> List[MinimalSource]:
-        sources: List[MinimalSource] = []
+
+    def chunk(self, path_file: PosixPath) -> Tuple[List[Chunk], List[str]]:
+        sources: List[Chunk] = []
+        sources_txt: List[str] = []
 
         chunker = RecursiveChunker.from_recipe(
             name="markdown",
             tokenizer=self.tokenizer,
-            chunk_size=self.max_chunk_size
+            chunk_size=self.max_chunk_size,
+            lang="en"
         )
 
         file = path_file.read_text()
         chunks = chunker.chunk(file)
         for chunk in chunks:
-            source = MinimalSource(
+            source = Chunk(
                 file_path=str(path_file),
                 first_character_index=chunk.start_index,
-                last_character_index=chunk.end_index,
-                text=chunk.text
+                last_character_index=chunk.end_index
             )
             sources.append(source)
+            sources_txt.append(chunk.text)
 
-        return sources
+        return sources, sources_txt
 
 
 def get_chunker(path: PosixPath, tokenizer, max_token: int) -> BaseChunker:

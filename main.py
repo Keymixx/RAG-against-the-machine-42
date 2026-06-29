@@ -68,11 +68,9 @@
 # from src.student import indexing
 
 # indexing(256)
-import json
+from src.student import get_overlap, MinimalSource
 
-with open("data/processed/chunks/chunks.json", "r") as f:
-    chunks = json.load(f)
+retrieved = MinimalSource(file_path="data/raw/vllm-0.10.1/docs/features/lora.md", first_character_index=4695, last_character_index=5716)
+source = MinimalSource(file_path="data/raw/vllm-0.10.1/docs/features/lora.md", first_character_index=4695, last_character_index=6098)
 
-for c in chunks:
-    print(c)
-    print("\n\n\n\n\n\n\n\n\\n\n\n")
+print(get_overlap(retrieved, source))
