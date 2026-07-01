@@ -19,7 +19,7 @@ class MinimalSource(BaseModel):
 
 class UnansweredQuestion(BaseModel):
     question_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    question_str: str
+    question: str
 
 
 class AnsweredQuestion(UnansweredQuestion):

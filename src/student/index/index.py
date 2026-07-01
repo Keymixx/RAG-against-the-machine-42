@@ -14,12 +14,18 @@ def indexing(max_token_size: int, model="Qwen/Qwen3-0.6B"):
     corpus_source = []
     all_path = []
 
-    path = pathlib.Path("data/raw/vllm-0.10.1")
-    doc_path = pathlib.Path("data/raw/vllm-0.10.1/docs")
+    dir_name = ["vllm", "docs"]
+    extensions = ["*.py", "*.md", "*.txt",]
 
-    all_path.extend(list(doc_path.rglob("*.md")))
-    all_path.extend(list(doc_path.rglob("vllm/*.py")))
-    all_path.extend(list(path.glob("README.md")))
+    vllm_path = pathlib.Path("data/raw/vllm-0.10.1")
+    all_path = []
+
+    for dir in dir_name:
+        actual_path = vllm_path / dir
+        for ext in extensions:
+            all_path.extend(list(actual_path.rglob(ext)))
+    for ext in extensions:
+        all_path.extend(list(vllm_path.glob(ext)))
 
     for path in all_path:
         chunker = get_chunker(path, tokenizer, max_token_size)
