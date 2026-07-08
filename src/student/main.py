@@ -5,7 +5,8 @@ from pydantic.json import pydantic_encoder
 from src.student import (indexing, searching, MinimalSource,
                          StudentSearchResults, AnswerBot, RagDataset,
                          UnansweredQuestion, MinimalSearchResults,
-                         MinimalAnswer, StudentSearchResultsAndAnswer)
+                         MinimalAnswer, StudentSearchResultsAndAnswer,
+                         evaluate)
 import json
 import dspy
 from typing import List
@@ -148,6 +149,9 @@ class RAGCLI:
         final_path = result_path / file_name
         final_path.parent.mkdir(parents=True, exist_ok=True)
         final_path.write_text(output_json)
+
+    def evaluate(self, dataset_path: str, student_answer_path: str):
+        evaluate(dataset_path, student_answer_path)
 
 if __name__ == "__main__":
     lm = dspy.LM(
