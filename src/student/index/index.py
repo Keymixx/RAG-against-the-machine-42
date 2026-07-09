@@ -4,6 +4,7 @@ from src.student import get_chunker
 from transformers import AutoTokenizer
 import json
 from pydantic.json import pydantic_encoder
+from tqdm import tqdm
 
 
 def indexing(max_token_size: int, model="Qwen/Qwen3-0.6B"):
@@ -27,7 +28,7 @@ def indexing(max_token_size: int, model="Qwen/Qwen3-0.6B"):
     for ext in extensions:
         all_path.extend(list(vllm_path.glob(ext)))
 
-    for path in all_path:
+    for path in tqdm(all_path, desc="Chunking files", unit="file"):
         chunker = get_chunker(path, tokenizer, max_token_size)
         chunks, chunks_text = chunker.chunk(path)
         corpus_source.extend(chunks)

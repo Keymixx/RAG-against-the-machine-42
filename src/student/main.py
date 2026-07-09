@@ -10,6 +10,7 @@ from src.student import (indexing, searching, MinimalSource,
 import json
 import dspy
 from typing import List
+from tqdm import tqdm
 
 
 class RAGCLI:
@@ -85,7 +86,7 @@ class RAGCLI:
         rag_dataset: List[UnansweredQuestion] = dataset.rag_questions
         search_results: List[MinimalSearchResults] = []
 
-        for q in rag_dataset:
+        for q in tqdm(rag_dataset, desc="Rag dataset", unit="Question"):
             source = searching(q.question, k, chunks, retriever)
             search = MinimalSearchResults(
                 question_id=q.question_id,
@@ -120,19 +121,22 @@ class RAGCLI:
         except Exception:
             print("chunks file not found")
 
+        answer_generator = AnswerBot()
+        
         content = pathlib.Path(dataset_path).read_text()
         dataset = RagDataset.model_validate_json(content)
 
         rag_dataset: List[UnansweredQuestion] = dataset.rag_questions
         search_results: List[MinimalSearchResults] = []
 
-        for q in rag_dataset:
+        for q in tqdm(rag_dataset, desc="Rag dataset", unit="Question"):
             source = searching(q.question, k, chunks, retriever)
+            answer = answer_generator(query=q.question, sources=source)
             search = MinimalAnswer(
                 question_id=q.question_id,
                 question_str=q.question,
                 retrieved_sources=source,
-                answer=self.answer(q.question, k)
+                answer=answer.answer
             )
 
             search_results.append(search)
