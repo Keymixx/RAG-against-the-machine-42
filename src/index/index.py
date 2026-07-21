@@ -1,6 +1,7 @@
 from bm25s import BM25, tokenize
 import pathlib
-from src import get_chunker, Chunk
+from ..chunkers.chunkers import get_chunker
+from ..models.models import Chunk
 from transformers import AutoTokenizer
 import json
 from pydantic.json import pydantic_encoder

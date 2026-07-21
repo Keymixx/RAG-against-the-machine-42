@@ -1,4 +1,7 @@
 .PHONY: install run debug clean lint lint-strict
+export UV_PROJECT_ENVIRONMENT := /tmp/rag_venv
+export UV_CACHE_DIR := /tmp/uv-cache
+
 
 install:
 	uv sync

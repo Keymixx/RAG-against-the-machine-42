@@ -1,15 +1,16 @@
 from bm25s import BM25
 import fire
 import pathlib
-from src import (indexing, searching, evaluate,
-                         StudentSearchResults, AnswerBot, RagDataset,
-                         UnansweredQuestion, MinimalSearchResults,
-                         MinimalAnswer, StudentSearchResultsAndAnswer)
 import json
 import dspy
 from typing import List
 from tqdm import tqdm
 
+from .models.models import MinimalAnswer, MinimalSearchResults, RagDataset, StudentSearchResults, StudentSearchResultsAndAnswer, UnansweredQuestion
+from .answer.answer_bot import AnswerBot
+from .index.index import indexing
+from .search.search import searching
+from .evaluate.evaluate import evaluate
 
 class RAGCLI:
     """fire-exposed CLI: index the corpus, search it, and answer questions."""

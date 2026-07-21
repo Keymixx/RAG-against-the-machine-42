@@ -1,5 +1,5 @@
-from .models import MinimalSource, MinimalAnswer, MinimalSearchResults
 from .models import AnsweredQuestion, UnansweredQuestion, RagDataset
+from .models import MinimalSource, MinimalAnswer, MinimalSearchResults
 from .models import StudentSearchResults, StudentSearchResultsAndAnswer
 from .models import Chunk
 

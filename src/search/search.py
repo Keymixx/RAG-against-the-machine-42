@@ -1,6 +1,6 @@
 from bm25s import tokenize, BM25
 from typing import List, Dict, Any
-from src import MinimalSource
+from ..models.models import MinimalSource
 
 
 def searching(query: str, k: int,

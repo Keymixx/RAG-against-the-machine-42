@@ -1,5 +1,6 @@
 import dspy
-from src import MinimalSource, get_text
+from ..models.models import MinimalSource
+from ..utils import get_text
 from typing import List
 
 
