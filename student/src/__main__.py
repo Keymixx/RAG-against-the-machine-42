@@ -1,7 +1,7 @@
 from bm25s import BM25
 import fire
 import pathlib
-from student.src import (indexing, searching, evaluate,
+from src import (indexing, searching, evaluate,
                          StudentSearchResults, AnswerBot, RagDataset,
                          UnansweredQuestion, MinimalSearchResults,
                          MinimalAnswer, StudentSearchResultsAndAnswer)
@@ -20,6 +20,10 @@ class RAGCLI:
 
     def search(self, query: str, k: int) -> None:
         """Search the corpus and print the top k matching chunks."""
+        if k <= 0:
+            print("'k' is not a positive integer")
+            raise SystemExit(1)
+        
         try:
             retriever = BM25.load("data/processed/bm25s_index_vllm")
         except Exception as exc:
@@ -51,6 +55,10 @@ class RAGCLI:
 
     def answer(self, query: str, k: int) -> str:
         """Search the corpus and generate a grounded answer to query."""
+        if k <= 0:
+            print("'k' is not a positive integer")
+            raise SystemExit(1)
+
         try:
             retriever = BM25.load("data/processed/bm25s_index_vllm")
         except Exception as exc:
@@ -78,6 +86,11 @@ class RAGCLI:
     def search_dataset(self, dataset_path: str,
                        k: int, save_directory: str) -> None:
         """Run search over every question of a dataset and save the results."""
+
+        if k <= 0:
+            print("'k' is not a positive integer")
+            raise SystemExit(1)
+
         try:
             retriever = BM25.load("data/processed/bm25s_index_vllm")
         except Exception as exc:
@@ -129,6 +142,10 @@ class RAGCLI:
     def answer_dataset(self, dataset_path: str,
                        k: int, save_directory: str) -> None:
         """Run answer over every question of a dataset and save the results."""
+        if k <= 0:
+            print("'k' is not a positive integer")
+            raise SystemExit(1)
+
         try:
             retriever = BM25.load("data/processed/bm25s_index_vllm")
         except Exception as exc:
@@ -188,12 +205,15 @@ class RAGCLI:
 
 
 if __name__ == "__main__":
-    lm = dspy.LM(
-        'ollama_chat/qwen3:0.6b',
-        api_base='http://localhost:11434',
-        think=False
-        )
+    try:
+        lm = dspy.LM(
+            'ollama_chat/qwen3:0.6b',
+            api_base='http://localhost:11434',
+            think=False
+            )
 
-    dspy.configure(lm=lm)
+        dspy.configure(lm=lm)
 
-    fire.Fire(RAGCLI)
+        fire.Fire(RAGCLI)
+    except Exception as e:
+        print(e)

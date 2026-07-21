@@ -1,6 +1,6 @@
 import pathlib
 from typing import Dict, List
-from student.src import RagDataset, StudentSearchResults, MinimalSource
+from src import RagDataset, StudentSearchResults, MinimalSource
 
 
 def get_overlap(retrieved: MinimalSource, correct: MinimalSource) -> float:

@@ -1,5 +1,5 @@
 import dspy
-from student.src import MinimalSource, get_text
+from src import MinimalSource, get_text
 from typing import List
 
 

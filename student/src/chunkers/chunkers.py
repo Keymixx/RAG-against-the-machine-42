@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from chonkie import RecursiveChunker, CodeChunker as CChunker
-from student.src import Chunk
+from src import Chunk
 from pathlib import PosixPath
 from typing import Any, List, Tuple
 

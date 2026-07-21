@@ -1,6 +1,6 @@
 from bm25s import BM25, tokenize
 import pathlib
-from student.src import get_chunker, Chunk
+from src import get_chunker, Chunk
 from transformers import AutoTokenizer
 import json
 from pydantic.json import pydantic_encoder
@@ -24,7 +24,7 @@ def indexing(max_token_size: int, model: str = "Qwen/Qwen3-0.6B") -> None:
         tokenizer = AutoTokenizer.from_pretrained(model)
     except Exception as exc:
         raise OSError(f"indexing: unable to"
-                      f"load tokenizer {model!r}: {exc}") from exc
+                      f"load tokenizer {model}: {exc}") from exc
 
     corpus_text: List[str] = []
     corpus_source: List[Chunk] = []
