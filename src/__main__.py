@@ -118,7 +118,7 @@ class RAGCLI:
             source = searching(q.question, k, chunks, retriever)
             search = MinimalSearchResults(
                 question_id=q.question_id,
-                question_str=q.question,
+                question=q.question,
                 retrieved_sources=source
             )
 
@@ -140,69 +140,63 @@ class RAGCLI:
         except OSError as exc:
             raise OSError(f"unable to write {final_path}: {exc}") from exc
 
-    def answer_dataset(self, dataset_path: str,
-                       k: int, save_directory: str) -> None:
-        """Run answer over every question of a dataset and save the results."""
-        if k <= 0:
-            print("'k' is not a positive integer")
-            raise SystemExit(1)
-
+    def answer_dataset(self, student_search_results_path: str,
+                       save_directory: str) -> None:
+        """Generate answers from existing search results and save them."""
         try:
-            retriever = BM25.load("data/processed/bm25s_index_vllm")
-        except Exception as exc:
-            print("index file not found")
+            content = pathlib.Path(student_search_results_path).read_text()
+        except OSError as exc:
+            print(f"unable to read {student_search_results_path}: {exc}")
             raise SystemExit(1) from exc
 
         try:
-            with open("data/processed/chunks/chunks.json", "r") as f:
-                chunks = json.load(f)
+            student_results = StudentSearchResults.model_validate_json(content)
         except Exception as exc:
-            print("chunks file not found")
+            print(f"invalid search results format: {exc}")
             raise SystemExit(1) from exc
 
         answer_generator = AnswerBot()
+        answers: List[MinimalAnswer] = []
 
-        try:
-            content = pathlib.Path(dataset_path).read_text()
-        except OSError as exc:
-            raise OSError(f"unable to read {dataset_path}: {exc}") from exc
-        dataset = RagDataset.model_validate_json(content)
-
-        rag_dataset: List[UnansweredQuestion] = dataset.rag_questions
-        search_results: List[MinimalSearchResults] = []
-
-        for q in tqdm(rag_dataset, desc="Rag dataset", unit="Question"):
-            source = searching(q.question, k, chunks, retriever)
-            answer = answer_generator(query=q.question, sources=source)
-            search = MinimalAnswer(
-                question_id=q.question_id,
-                question_str=q.question,
-                retrieved_sources=source,
-                answer=answer.answer
-            )
-
-            search_results.append(search)
+        for result in tqdm(student_results.search_results,
+                           desc="Generating answers", unit="question"):
+            try:
+                answer = answer_generator(
+                    query=result.question,
+                    sources=result.retrieved_sources
+                )
+                answers.append(MinimalAnswer(
+                    question_id=result.question_id,
+                    question=result.question,
+                    retrieved_sources=result.retrieved_sources,
+                    answer=answer.answer
+                ))
+            except Exception as exc:
+                print(f"answer generation failed for {result.question_id}: {exc}")
+                answers.append(MinimalAnswer(
+                    question_id=result.question_id,
+                    question=result.question,
+                    retrieved_sources=result.retrieved_sources,
+                    answer=""
+                ))
 
         student_result = StudentSearchResultsAndAnswer(
-            search_results=search_results,
-            k=k
+            search_results=answers,
+            k=student_results.k
         )
 
-        output_json = student_result.model_dump_json(indent=4)
-
-        file_name = pathlib.Path(dataset_path).name
-        result_path = pathlib.Path(save_directory)
-        final_path = result_path / file_name
+        file_name = pathlib.Path(student_search_results_path).name
+        final_path = pathlib.Path(save_directory) / file_name
         try:
             final_path.parent.mkdir(parents=True, exist_ok=True)
-            final_path.write_text(output_json)
+            final_path.write_text(student_result.model_dump_json(indent=4))
         except OSError as exc:
             raise OSError(f"unable to write {final_path}: {exc}") from exc
 
-    def evaluate(self, dataset_path: str, student_answer_path: str) -> None:
+    def evaluate(self, dataset_path: str, student_search_results_path: str) -> None:
         """Compute and print recall@k
         metrics for a saved search/answer result."""
-        evaluate(dataset_path, student_answer_path)
+        evaluate(dataset_path, student_search_results_path)
 
 
 if __name__ == "__main__":

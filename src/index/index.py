@@ -7,6 +7,7 @@ import json
 from pydantic.json import pydantic_encoder
 from tqdm import tqdm
 from typing import List
+import time
 
 
 def indexing(max_token_size: int, model: str = "Qwen/Qwen3-0.6B") -> None:
@@ -30,13 +31,16 @@ def indexing(max_token_size: int, model: str = "Qwen/Qwen3-0.6B") -> None:
     corpus_text: List[str] = []
     corpus_source: List[Chunk] = []
     all_path: List[pathlib.Path] = []
+    total_chunks = 0
 
-    dir_name = ["vllm", "docs"]
+    dir_name = ["vllm", "docs", "examples"]
     extensions = ["*.py", "*.md", "*.txt",]
 
     vllm_path = pathlib.Path("data/raw/vllm-0.10.1")
     all_path = []
 
+    for ext in extensions:
+        all_path.extend(list(vllm_path.glob(ext)))
     for dir in dir_name:
         actual_path = vllm_path / dir
         for ext in extensions:
@@ -53,6 +57,7 @@ def indexing(max_token_size: int, model: str = "Qwen/Qwen3-0.6B") -> None:
             continue
         corpus_source.extend(chunks)
         corpus_text.extend(chunks_text)
+        total_chunks += len(chunks)
 
     retriever = BM25()
     retriever.index(tokenize(corpus_text, stopwords="english"))
@@ -68,6 +73,8 @@ def indexing(max_token_size: int, model: str = "Qwen/Qwen3-0.6B") -> None:
     try:
         chunks_path.parent.mkdir(parents=True, exist_ok=True)
         chunks_path.write_text(sources_chunks)
+        print(f"Ingestion complete! Index {total_chunks} chunks"
+              " under data/processed/")
     except OSError as exc:
         raise OSError(f"indexing: unable to write"
                       f"{chunks_path}: {exc}") from exc

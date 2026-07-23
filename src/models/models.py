@@ -46,7 +46,7 @@ class MinimalSearchResults(BaseModel):
     """Search results (retrieved sources) for a single question."""
 
     question_id: str
-    question_str: str
+    question: str
     retrieved_sources: List[MinimalSource]
 
 
