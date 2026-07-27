@@ -21,6 +21,11 @@ class RAGCLI:
 
     def search(self, query: str, k: int) -> None:
         """Search the corpus and print the top k matching chunks."""
+
+        if not query or not query.strip():
+            print("query cannot be empty")
+            raise SystemExit(1)
+
         if k <= 0:
             print("'k' is not a positive integer")
             raise SystemExit(1)
@@ -54,11 +59,27 @@ class RAGCLI:
             print(f"Last index character: {source.last_character_index}")
             print()
 
-    def answer(self, query: str, k: int) -> str:
+    def answer(self, query: str, k: int) -> None:
         """Search the corpus and generate a grounded answer to query."""
+
         if k <= 0:
             print("'k' is not a positive integer")
             raise SystemExit(1)
+
+        if not query or not query.strip():
+            print("query cannot be empty")
+            raise SystemExit(1)
+        try:
+            lm = dspy.LM(
+                'ollama_chat/qwen3:0.6b',
+                api_base='http://localhost:11434',
+                think=False
+            )
+
+            dspy.configure(lm=lm)
+        except Exception as exc:
+            print(f"LLM connection failed: {exc}")
+            raise SystemExit(1) from exc
 
         try:
             retriever = BM25.load("data/processed/bm25s_index_vllm")
@@ -82,7 +103,8 @@ class RAGCLI:
             )
 
         answer = answer_generator(query=query, sources=sources)
-        return (answer.answer)
+        print(f"Query: {query}")
+        print(f"Answer: {answer.answer}")
 
     def search_dataset(self, dataset_path: str,
                        k: int, save_directory: str) -> None:
@@ -143,10 +165,22 @@ class RAGCLI:
     def answer_dataset(self, student_search_results_path: str,
                        save_directory: str) -> None:
         """Generate answers from existing search results and save them."""
+
         try:
             content = pathlib.Path(student_search_results_path).read_text()
         except OSError as exc:
             print(f"unable to read {student_search_results_path}: {exc}")
+            raise SystemExit(1) from exc
+
+        try:
+            lm = dspy.LM(
+                'ollama_chat/qwen3:0.6b',
+                api_base='http://localhost:11434',
+            )
+
+            dspy.configure(lm=lm)
+        except Exception as exc:
+            print(f"LLM connection failed: {exc}")
             raise SystemExit(1) from exc
 
         try:
@@ -201,13 +235,6 @@ class RAGCLI:
 
 if __name__ == "__main__":
     try:
-        lm = dspy.LM(
-            'ollama_chat/qwen3:0.6b',
-            api_base='http://localhost:11434',
-            think=False
-            )
-
-        dspy.configure(lm=lm)
 
         fire.Fire(RAGCLI)
     except Exception as e:

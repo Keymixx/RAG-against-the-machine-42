@@ -6,7 +6,7 @@ from typing import List
 
 class AnswerSignature(dspy.Signature):
     """Answer a question about the vLLM codebase using only the
-    provided sources."""
+    provided sources. /nothink"""
 
     query: str = dspy.InputField(
         desc="The user's question about the vLLM codebase or "

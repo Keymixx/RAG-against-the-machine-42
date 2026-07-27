@@ -21,7 +21,6 @@ def indexing(max_token_size: int, model: str = "Qwen/Qwen3-0.6B") -> None:
     Raises:
         OSError: If the tokenizer, index or chunks cannot be loaded/saved.
     """
-    max_token_size = 256
     try:
         tokenizer = AutoTokenizer.from_pretrained(model)
     except Exception as exc:
