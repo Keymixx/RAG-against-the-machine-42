@@ -1,3 +1,4 @@
+import Stemmer
 from bm25s import BM25, tokenize
 import pathlib
 from ..chunkers.chunkers import get_chunker
@@ -10,7 +11,7 @@ from typing import List
 import time
 
 
-def indexing(max_token_size: int, model: str = "Qwen/Qwen3-0.6B") -> None:
+def indexing(max_token_size: int = 2000, model: str = "Qwen/Qwen3-0.6B") -> None:
     """Chunk the vLLM corpus, build a
     BM25 index and persist everything to disk.
 
@@ -21,11 +22,8 @@ def indexing(max_token_size: int, model: str = "Qwen/Qwen3-0.6B") -> None:
     Raises:
         OSError: If the tokenizer, index or chunks cannot be loaded/saved.
     """
-    try:
-        tokenizer = AutoTokenizer.from_pretrained(model)
-    except Exception as exc:
-        raise OSError(f"indexing: unable to"
-                      f"load tokenizer {model}: {exc}") from exc
+    max_token_size = max_token_size // 4
+
 
     corpus_text: List[str] = []
     corpus_source: List[Chunk] = []
@@ -49,7 +47,7 @@ def indexing(max_token_size: int, model: str = "Qwen/Qwen3-0.6B") -> None:
 
     for path in tqdm(all_path, desc="Chunking files", unit="file"):
         try:
-            chunker = get_chunker(path, tokenizer, max_token_size)
+            chunker = get_chunker(path, max_token_size)
             chunks, chunks_text = chunker.chunk(path)
         except (OSError, ValueError) as exc:
             print(f"indexing: skipping {path} ({exc})")
@@ -59,7 +57,8 @@ def indexing(max_token_size: int, model: str = "Qwen/Qwen3-0.6B") -> None:
         total_chunks += len(chunks)
 
     retriever = BM25()
-    retriever.index(tokenize(corpus_text, stopwords="english"))
+    stemmer = Stemmer.Stemmer("english")
+    retriever.index(tokenize(corpus_text, stopwords="english", stemmer=stemmer))
     try:
         retriever.save("data/processed/bm25s_index_vllm")
     except OSError as exc:

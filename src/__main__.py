@@ -15,7 +15,7 @@ from .evaluate.evaluate import evaluate
 class RAGCLI:
     """fire-exposed CLI: index the corpus, search it, and answer questions."""
 
-    def index(self, max_chunk_size: int) -> None:
+    def index(self, max_chunk_size: int = 2000) -> None:
         """Chunk the corpus and build the BM25 index."""
         indexing(max_chunk_size)
 
@@ -73,7 +73,8 @@ class RAGCLI:
             lm = dspy.LM(
                 'ollama_chat/qwen3:0.6b',
                 api_base='http://localhost:11434',
-                think=False
+                think=False,
+                num_ctx=32768
             )
 
             dspy.configure(lm=lm)
@@ -176,6 +177,8 @@ class RAGCLI:
             lm = dspy.LM(
                 'ollama_chat/qwen3:0.6b',
                 api_base='http://localhost:11434',
+                think=False,
+                num_ctx=32768
             )
 
             dspy.configure(lm=lm)

@@ -6,7 +6,7 @@ from typing import Any, List, Tuple
 
 
 class BaseChunker(ABC):
-    def __init__(self, max_chunk_size: int, tokenizer: Any):
+    def __init__(self, max_chunk_size: int):
         """Store the shared configuration for a chunker.
 
         Args:
@@ -22,7 +22,7 @@ class BaseChunker(ABC):
 
 
 class CodeChunker(BaseChunker):
-    def __init__(self, max_chunk_size: int, tokenizer: Any, language: str):
+    def __init__(self, max_chunk_size: int, language: str):
         """Initialize the code chunker.
 
         Args:
@@ -30,9 +30,8 @@ class CodeChunker(BaseChunker):
             tokenizer: Tokenizer used to measure chunk sizes.
             language: Programming language of the file (e.g. "python").
         """
-        super().__init__(max_chunk_size, tokenizer)
+        super().__init__(max_chunk_size)
         self.language = language
-        self.tokenizer = tokenizer
 
     def chunk(self, path_file: PosixPath) -> Tuple[List[Chunk], List[str]]:
         """Split a source code file into chunks.
@@ -52,7 +51,7 @@ class CodeChunker(BaseChunker):
 
         chunker = CChunker(
             language=self.language,
-            tokenizer=self.tokenizer,
+            tokenizer="character",
             chunk_size=self.max_chunk_size
             )
 
@@ -74,15 +73,14 @@ class CodeChunker(BaseChunker):
 
 
 class MarkdownChunker(BaseChunker):
-    def __init__(self, max_chunk_size: int, tokenizer: Any):
+    def __init__(self, max_chunk_size: int):
         """Initialize the markdown chunker.
 
         Args:
             max_chunk_size: Maximum number of tokens allowed per chunk.
             tokenizer: Tokenizer used to measure chunk sizes.
         """
-        super().__init__(max_chunk_size, tokenizer)
-        self.tokenizer = tokenizer
+        super().__init__(max_chunk_size)
 
     def chunk(self, path_file: PosixPath) -> Tuple[List[Chunk], List[str]]:
         """Split a Markdown / text file into chunks.
@@ -96,7 +94,7 @@ class MarkdownChunker(BaseChunker):
 
         chunker = RecursiveChunker.from_recipe(
             name="markdown",
-            tokenizer=self.tokenizer,
+            tokenizer="character",
             chunk_size=self.max_chunk_size,
             lang="en"
         )
@@ -124,8 +122,7 @@ class MarkdownChunker(BaseChunker):
         return sources, sources_txt
 
 
-def get_chunker(path: PosixPath,
-                tokenizer: Any, max_token: int) -> BaseChunker:
+def get_chunker(path: PosixPath, max_token: int) -> BaseChunker:
     """Pick the right chunker implementation for a given file.
 
     Args:
@@ -137,8 +134,8 @@ def get_chunker(path: PosixPath,
         A CodeChunker for .py files, a MarkdownChunker otherwise.
     """
     if path.suffix == ".py":
-        return CodeChunker(max_token, tokenizer, "python")
+        return CodeChunker(max_token, "python")
     elif path.suffix == ".md":
-        return MarkdownChunker(max_token, tokenizer)
+        return MarkdownChunker(max_token)
     else:
-        return MarkdownChunker(max_token, tokenizer)
+        return MarkdownChunker(max_token)
