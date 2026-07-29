@@ -27,8 +27,6 @@ def indexing(max_token_size: int = 2000, model: str = "Qwen/Qwen3-0.6B") -> None
     Raises:
         OSError: If the tokenizer, index or chunks cannot be loaded/saved.
     """
-    max_token_size = max_token_size // 4
-
 
     corpus_text: List[str] = []
     corpus_source: List[Chunk] = []

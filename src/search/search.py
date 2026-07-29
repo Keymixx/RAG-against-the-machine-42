@@ -1,4 +1,5 @@
 from bm25s import tokenize, BM25
+import Stemmer
 from typing import List, Dict, Any
 from ..models.models import MinimalSource
 import re
@@ -26,8 +27,9 @@ def searching(query: str, k: int,
         ValueError: If the retrieval step fails.
     """
     try:
+        stemmer = Stemmer.Stemmer("english")
         results, scores = retriever.retrieve(
-            tokenize(expand_identifiers(query), stopwords="english"), k=k)
+            tokenize(expand_identifiers(query), stopwords="english", stemmer=stemmer), k=k)
     except Exception as exc:
         raise ValueError(f"searching: BM25 retrieval"
                          f"failed for query {query!r}: {exc}") from exc
