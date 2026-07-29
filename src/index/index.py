@@ -9,7 +9,12 @@ from pydantic.json import pydantic_encoder
 from tqdm import tqdm
 from typing import List
 import time
+import re
 
+def expand_identifiers(text: str) -> str:
+    extra = re.sub(r'[_.]', ' ', text)
+    extra = re.sub(r'(?<=[a-z0-9])(?=[A-Z])', ' ', extra)
+    return text + " " + extra
 
 def indexing(max_token_size: int = 2000, model: str = "Qwen/Qwen3-0.6B") -> None:
     """Chunk the vLLM corpus, build a
@@ -58,7 +63,7 @@ def indexing(max_token_size: int = 2000, model: str = "Qwen/Qwen3-0.6B") -> None
 
     retriever = BM25()
     stemmer = Stemmer.Stemmer("english")
-    retriever.index(tokenize(corpus_text, stopwords="english", stemmer=stemmer))
+    retriever.index(tokenize([expand_identifiers(t) for t in corpus_text], stopwords="english", stemmer=stemmer))
     try:
         retriever.save("data/processed/bm25s_index_vllm")
     except OSError as exc:
