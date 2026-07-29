@@ -6,18 +6,26 @@ import dspy
 from typing import List
 from tqdm import tqdm
 
-from .models.models import MinimalAnswer, MinimalSearchResults, RagDataset, StudentSearchResults, StudentSearchResultsAndAnswer, UnansweredQuestion
+from .models.models import (MinimalAnswer, MinimalSearchResults, RagDataset,
+                            StudentSearchResults,
+                            StudentSearchResultsAndAnswer, UnansweredQuestion)
 from .answer.answer_bot import AnswerBot
 from .index.index import indexing
 from .search.search import searching
 from .evaluate.evaluate import evaluate
+
 
 class RAGCLI:
     """fire-exposed CLI: index the corpus, search it, and answer questions."""
 
     def index(self, max_chunk_size: int = 2000) -> None:
         """Chunk the corpus and build the BM25 index."""
-        indexing(max_chunk_size)
+        if not isinstance(max_chunk_size, int):
+            print("max_chunk_size must be a positive integer")
+        elif not 0 < max_chunk_size <= 2000:
+            print("max_chunk_size must be between 1 and 2000.")
+        else:
+            indexing(max_chunk_size)
 
     def search(self, query: str, k: int) -> None:
         """Search the corpus and print the top k matching chunks."""
@@ -29,7 +37,7 @@ class RAGCLI:
         if k <= 0:
             print("'k' is not a positive integer")
             raise SystemExit(1)
-        
+
         try:
             retriever = BM25.load("data/processed/bm25s_index_vllm")
         except Exception as exc:
@@ -73,8 +81,7 @@ class RAGCLI:
             lm = dspy.LM(
                 'ollama_chat/qwen3:0.6b',
                 api_base='http://localhost:11434',
-                think=False,
-                num_ctx=32768
+                think=False
             )
 
             dspy.configure(lm=lm)
@@ -178,7 +185,6 @@ class RAGCLI:
                 'ollama_chat/qwen3:0.6b',
                 api_base='http://localhost:11434',
                 think=False,
-                num_ctx=32768
             )
 
             dspy.configure(lm=lm)
@@ -209,7 +215,7 @@ class RAGCLI:
                     answer=answer.answer
                 ))
             except Exception as exc:
-                print(f"answer generation failed for {result.question_id}: {exc}")
+                print(f"answer gen failed: {result.question_id}: {exc}")
                 answers.append(MinimalAnswer(
                     question_id=result.question_id,
                     question=result.question,
@@ -230,7 +236,8 @@ class RAGCLI:
         except OSError as exc:
             raise OSError(f"unable to write {final_path}: {exc}") from exc
 
-    def evaluate(self, dataset_path: str, student_search_results_path: str) -> None:
+    def evaluate(self, dataset_path: str,
+                 student_search_results_path: str) -> None:
         """Compute and print recall@k
         metrics for a saved search/answer result."""
         evaluate(dataset_path, student_search_results_path)

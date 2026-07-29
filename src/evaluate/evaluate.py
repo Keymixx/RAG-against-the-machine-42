@@ -1,6 +1,7 @@
 import pathlib
 from typing import Dict, List
-from ..models.models import RagDataset, StudentSearchResults, MinimalSource
+from ..models.models import (RagDataset, StudentSearchResults,
+                             MinimalSource, AnsweredQuestion)
 
 
 def get_overlap(retrieved: MinimalSource, correct: MinimalSource) -> float:
@@ -71,18 +72,18 @@ def evaluate(dataset_path: str, student_answer_path: str) -> None:
     correct = correct_dataset.rag_questions
     retrieved = student_dataset.search_results
 
-    ground_truth = {}
+    ground_truth: Dict[str, List[MinimalSource]] = {}
 
-    for q in correct:
-        if hasattr(q, "sources"):
-            ground_truth[q.question_id] = q.sources
+    for question in correct:
+        if isinstance(question, AnsweredQuestion):
+            ground_truth[question.question_id] = question.sources
 
     nb_question = len(retrieved)
     scores: Dict[int, List[float]] = {1: [], 3: [], 5: [], 10: []}
 
-    for q in retrieved:
-        correct_sources = ground_truth.get(q.question_id, [])
-        retrieved_sources = q.retrieved_sources
+    for result in retrieved:
+        correct_sources = ground_truth.get(result.question_id, [])
+        retrieved_sources = result.retrieved_sources
 
         for k in [1, 3, 5, 10]:
             scores[k].append(recall_k(retrieved_sources, correct_sources, k))

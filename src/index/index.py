@@ -3,20 +3,20 @@ from bm25s import BM25, tokenize
 import pathlib
 from ..chunkers.chunkers import get_chunker
 from ..models.models import Chunk
-from transformers import AutoTokenizer
 import json
 from pydantic.json import pydantic_encoder
 from tqdm import tqdm
 from typing import List
-import time
 import re
+
 
 def expand_identifiers(text: str) -> str:
     extra = re.sub(r'[_.]', ' ', text)
     extra = re.sub(r'(?<=[a-z0-9])(?=[A-Z])', ' ', extra)
     return text + " " + extra
 
-def indexing(max_token_size: int = 2000, model: str = "Qwen/Qwen3-0.6B") -> None:
+
+def indexing(max_token_size: int = 2000) -> None:
     """Chunk the vLLM corpus, build a
     BM25 index and persist everything to disk.
 
@@ -39,8 +39,6 @@ def indexing(max_token_size: int = 2000, model: str = "Qwen/Qwen3-0.6B") -> None
     vllm_path = pathlib.Path("data/raw/vllm-0.10.1")
     all_path = []
 
-    for ext in extensions:
-        all_path.extend(list(vllm_path.glob(ext)))
     for dir in dir_name:
         actual_path = vllm_path / dir
         for ext in extensions:
@@ -61,7 +59,8 @@ def indexing(max_token_size: int = 2000, model: str = "Qwen/Qwen3-0.6B") -> None
 
     retriever = BM25()
     stemmer = Stemmer.Stemmer("english")
-    retriever.index(tokenize([expand_identifiers(t) for t in corpus_text], stopwords="english", stemmer=stemmer))
+    retriever.index(tokenize([expand_identifiers(t) for t in corpus_text],
+                             stopwords="english", stemmer=stemmer))
     try:
         retriever.save("data/processed/bm25s_index_vllm")
     except OSError as exc:

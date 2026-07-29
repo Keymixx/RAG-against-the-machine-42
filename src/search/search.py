@@ -4,10 +4,12 @@ from typing import List, Dict, Any
 from ..models.models import MinimalSource
 import re
 
+
 def expand_identifiers(text: str) -> str:
     extra = re.sub(r'[_.]', ' ', text)
     extra = re.sub(r'(?<=[a-z0-9])(?=[A-Z])', ' ', extra)
     return text + " " + extra
+
 
 def searching(query: str, k: int,
               chunks: List[Dict[str, Any]],
@@ -29,7 +31,8 @@ def searching(query: str, k: int,
     try:
         stemmer = Stemmer.Stemmer("english")
         results, scores = retriever.retrieve(
-            tokenize(expand_identifiers(query), stopwords="english", stemmer=stemmer), k=k)
+            tokenize(expand_identifiers(query),
+                     stopwords="english", stemmer=stemmer), k=k)
     except Exception as exc:
         raise ValueError(f"searching: BM25 retrieval"
                          f"failed for query {query!r}: {exc}") from exc
