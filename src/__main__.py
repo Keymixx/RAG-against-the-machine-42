@@ -245,7 +245,8 @@ class RAGCLI:
 
 if __name__ == "__main__":
     try:
-
         fire.Fire(RAGCLI)
+    except KeyboardInterrupt:
+        print("Keyboard interrupt by user")
     except Exception as e:
         print(e)

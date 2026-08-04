@@ -16,16 +16,14 @@ def expand_identifiers(text: str) -> str:
     return text + " " + extra
 
 
-def indexing(max_token_size: int = 2000) -> None:
-    """Chunk the vLLM corpus, build a
-    BM25 index and persist everything to disk.
+def indexing(max_chunk_size: int = 2000) -> None:
+    """Chunk the vLLM corpus, build a BM25 index and persist it to disk.
 
     Args:
-        max_token_size: Maximum number of tokens allowed per chunk.
-        model: Hugging Face model id used to load the tokenizer.
+        max_chunk_size: Maximum number of characters allowed per chunk.
 
     Raises:
-        OSError: If the tokenizer, index or chunks cannot be loaded/saved.
+        OSError: If the index or chunks cannot be saved.
     """
 
     corpus_text: List[str] = []
@@ -37,7 +35,6 @@ def indexing(max_token_size: int = 2000) -> None:
     extensions = ["*.py", "*.md", "*.txt",]
 
     vllm_path = pathlib.Path("data/raw/vllm-0.10.1")
-    all_path = []
 
     for dir in dir_name:
         actual_path = vllm_path / dir
@@ -48,7 +45,7 @@ def indexing(max_token_size: int = 2000) -> None:
 
     for path in tqdm(all_path, desc="Chunking files", unit="file"):
         try:
-            chunker = get_chunker(path, max_token_size)
+            chunker = get_chunker(path, max_chunk_size)
             chunks, chunks_text = chunker.chunk(path)
         except (OSError, ValueError) as exc:
             print(f"indexing: skipping {path} ({exc})")
@@ -59,6 +56,8 @@ def indexing(max_token_size: int = 2000) -> None:
 
     retriever = BM25()
     stemmer = Stemmer.Stemmer("english")
+    if not corpus_text:
+        raise ValueError("indexing: no chunk produced, check the corpus path")
     retriever.index(tokenize([expand_identifiers(t) for t in corpus_text],
                              stopwords="english", stemmer=stemmer))
     try:

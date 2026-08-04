@@ -2,8 +2,10 @@
 export UV_PROJECT_ENVIRONMENT := /tmp/rag_venv
 export UV_CACHE_DIR := /tmp/uv-cache
 
+all: install
 
 install:
+	ollama pull qwen3:0.6b
 	uv sync
 
 run:
@@ -23,9 +25,5 @@ lint:
 		--warn-return-any \
 		--warn-unused-ignores \
 		--ignore-missing-imports \
-		--disallow-untyped-defs \
+    	--disallow-untyped-defs \
 		--check-untyped-defs
-
-lint-strict:
-	uv run flake8 src/
-	uv run mypy src/ --strict
